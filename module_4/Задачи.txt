@@ -1,0 +1,202 @@
+Задание 4.1
+
+SELECT ap.city,
+       count(ap.airport_code)
+FROM dst_project.airports ap
+GROUP BY 1
+ORDER BY 2 DESC,
+         1
+
+-----------------------------------
+Задание 4.2
+
+Вопрос 1
+
+SELECT count(DISTINCT f.status)
+FROM dst_project.flights f
+
+Вопрос 2
+
+SELECT count(f.flight_id)
+FROM dst_project.flights f
+WHERE f.status = 'Departed'
+
+Вопрос 3
+
+SELECT count(s.seat_no)
+FROM dst_project.seats s
+WHERE s.aircraft_code = '773'
+
+Вопрос 4
+
+SELECT count(f.flight_id)
+FROM dst_project.flights f
+WHERE f.status = 'Arrived'
+  AND actual_arrival BETWEEN '2017-04-01' AND '2017-09-01'
+
+-----------------------------------
+Задание 4.3
+
+Вопрос 1
+
+SELECT count(f.flight_id)
+FROM dst_project.flights f
+WHERE f.status = 'Cancelled'
+
+Вопрос 2
+
+SELECT count(ac.aircraft_code)
+FROM dst_project.aircrafts ac
+WHERE ac.model like 'Boeing%'
+
+SELECT count(ac.aircraft_code)
+FROM dst_project.aircrafts ac
+WHERE ac.model like 'Sukhoi Superjet%'
+
+SELECT count(ac.aircraft_code)
+FROM dst_project.aircrafts ac
+WHERE ac.model like 'Airbus%'
+
+Вопрос 3
+
+SELECT substring(ap.timezone, 1, 1),
+       count(ap.airport_code)
+FROM dst_project.airports ap
+GROUP BY 1
+
+Вопрос 4
+
+SELECT f.flight_id,
+       f.scheduled_arrival - f.actual_arrival
+FROM dst_project.flights f
+WHERE f.status = 'Arrived'
+ORDER BY 2
+
+-----------------------------------
+Задание 4.4
+
+Вопрос 1
+
+SELECT f.scheduled_departure
+FROM dst_project.flights f
+ORDER BY 1
+
+Вопрос 2
+
+SELECT fv.scheduled_duration
+FROM dst_project.flights_v fv
+ORDER BY 1 DESC
+
+Вопрос 3
+
+SELECT fv.scheduled_duration,
+       fv.departure_airport,
+       fv.arrival_airport
+FROM dst_project.flights_v fv
+ORDER BY 1 DESC
+
+Вопрос 4
+
+SELECT avg(fv.actual_duration)
+FROM dst_project.flights_v fv
+
+-----------------------------------
+Задание 4.5
+
+Вопрос 1
+
+SELECT s.fare_conditions,
+       count(s.seat_no)
+FROM dst_project.seats s
+WHERE s.aircraft_code = 'SU9'
+GROUP BY 1
+
+Вопрос 2
+
+SELECT b.total_amount
+FROM dst_project.bookings b
+ORDER BY 1
+
+Вопрос 3
+
+SELECT bp.seat_no
+FROM dst_project.boarding_passes bp
+JOIN dst_project.tickets t ON bp.ticket_no = t.ticket_no
+WHERE t.passenger_id = '4313 788533'
+
+-----------------------------------
+Задание 5.1
+
+Вопрос 1
+
+SELECT count(fv.flight_id)
+FROM dst_project.flights_v fv
+WHERE fv.arrival_city = 'Анапа'
+  AND fv.actual_departure BETWEEN '2017-01-01' AND '2018-01-01'
+
+Вопрос 2
+
+SELECT count(fv.flight_id)
+FROM dst_project.flights_v fv
+WHERE (fv.actual_departure BETWEEN '2017-01-01' AND '2017-03-01'
+       OR fv.actual_departure BETWEEN '2017-12-01' AND '2018-01-01')
+  AND fv.departure_city = 'Анапа'
+
+Вопрос 3
+
+SELECT count(fv.flight_id)
+FROM dst_project.flights_v fv
+WHERE fv.departure_city = 'Анапа'
+  AND fv.status = 'Cancelled'
+
+Вопрос 4
+
+SELECT count(fv.flight_id)
+FROM dst_project.flights_v fv
+WHERE fv.departure_city = 'Анапа'
+  AND fv.arrival_city != 'Москва'
+
+Вопрос 5
+
+SELECT ac.model,
+       count(s.seat_no)
+FROM dst_project.flights_v fv
+JOIN dst_project.aircrafts ac ON fv.aircraft_code = ac.aircraft_code
+JOIN dst_project.seats s ON fv.aircraft_code = s.aircraft_code
+WHERE fv.departure_city = 'Анапа'
+GROUP BY 1
+
+-----------------------------------
+-----------------------------------
+Итоговый запрос
+
+
+SELECT f.flight_id flight_id,
+       'Anapa' departure_city,
+               ap.city arrival_city,
+               f.scheduled_arrival - f.scheduled_departure flight_time,
+               ac.model model,
+               ss.count_seats count_seats,
+               count(tf.ticket_no) sell_tickets,
+               sum(tf.amount) amount
+FROM dst_project.flights f
+JOIN dst_project.airports ap ON f.arrival_airport = ap.airport_code
+JOIN dst_project.aircrafts ac ON f.aircraft_code = ac.aircraft_code
+LEFT JOIN dst_project.ticket_flights tf ON f.flight_id = tf.flight_id
+JOIN
+  (SELECT s.aircraft_code,
+          count(s.seat_no) count_seats
+   FROM dst_project.seats s
+   GROUP BY 1) ss ON f.aircraft_code = ss.aircraft_code
+WHERE departure_airport = 'AAQ'
+  AND (date_trunc('month', scheduled_departure) in ('2017-01-01',
+                                                    '2017-02-01',
+                                                    '2017-12-01'))
+  AND status not in ('Cancelled')
+GROUP BY 1,
+         3,
+         4,
+         5,
+         6
+-----------------------------------
+-----------------------------------
